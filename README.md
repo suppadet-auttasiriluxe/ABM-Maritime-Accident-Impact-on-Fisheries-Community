@@ -1,5 +1,6 @@
 # ABM Maritime Accident Impact on Fisheries Community
-For Class of Ecological Challenges as a part of EPOG-JM Master's Degree (cohort 2024-2026)
+   - For Class of Ecological Challenges as a part of EPOG-JM Master's Degree (cohort 2024-2026)
+   - Just download the Fisheries-Pollution Dynamic v_._.nlogo file
 
 # Version: v0.1 - Proof-of-Concept Draft - Actors & Mechanics are there but dynamics doesn't work yet :(
 
@@ -15,7 +16,7 @@ For Class of Ecological Challenges as a part of EPOG-JM Master's Degree (cohort 
       - Fisherman have a hard time finding fish -> they go bankrupt
 
    ## What to do in the next version?
-      - **IMPROVE PROCEDURE**
+      - IMPROVE PROCEDURE
          - setup            ;; Fish spawned have to be more realistic (should spawned in school not randomly)
                             ;; Also, right now there are too many fishes available for fisherman
          - fish-reproduce      ;; - Fish reproduction mechanics have to be limited by i.) prior pop. amount, ii.) pollution amount [e.g. see logictical growth, pollution effect]
@@ -26,19 +27,19 @@ For Class of Ecological Challenges as a part of EPOG-JM Master's Degree (cohort 
                                   ;; - remove the movement (everything happen in a tick, we use the model to calculate); we will not see nice animation though :(
                                   ;; - keep the movement; but we have to introduce fuel / limit to how much fisherman can travel per expedition_cost; once that is reached they have to return regardless of desired_fish_amount
          - pollution-spread    ;; right now when you press pollute, pollution keep expanding with no end when pollution_decay_rate > 20
-      - **IMPROVE VARIABLES**   (to be true to real life)
+      - IMPROVE VARIABLES   (to be true to real life)
          - max_fish_pop                ;; fish can't just keep growing
          - fish_reproduction_rate      ;; rate must be true to real life
          - ...
-      - **INTRODUCE INVESTMENT/EQUIPMENT**
+      - INTRODUCE INVESTMENT/EQUIPMENT
          - radar: always go to patch with highest fish
          - engine: increase move speed / reduce expedition cost (better fuel efficiency)
          - trawler: reduce fishing time
          - fuel tank: bigger fuel tank = more max_travel_distance
-      - **INTRODUCE MARKET DYNAMICS**
+      - INTRODUCE MARKET DYNAMICS
          - fish_supply         ;; how much fish is in the market
          - fish_demand_static  ;; how many fish is consume/tick
          - fish_price          ;; have to be dynamics depends on current fish_supply: if oversupply => fish price drop, and vice-versa
-      - **INTRODUCE JOB MARKET**
+      - INTRODUCE JOB MARKET
          - People can consider becoming fisherman / go to factory ??
-      - **INTRODUCE HEALTH ASPECT??**
+      - INTRODUCE HEALTH ASPECT??
