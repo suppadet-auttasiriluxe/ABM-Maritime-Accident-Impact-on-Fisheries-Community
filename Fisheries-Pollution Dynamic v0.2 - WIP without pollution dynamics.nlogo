@@ -5,7 +5,7 @@
 ;;   Model Description:
 ;;      1. Under usual condition fisherman sell caught-fish, pay money [?WHAT AMOUNT?]
 ;;      2. then go out randomly to fish, and fish all [or RANDOMIZED?] from patch
-;;      -
+;;      3. then go back home and start again from 1.
 ;;
 ;;
 ;;   Hypothesis:
@@ -14,7 +14,7 @@
 ;;
 ;;   What to do in the next version?
 ;;      - IMPROVE PROCEDURE
-;;         - setup            ;; - starting money should be HETEROGENOUS ?
+;;         - setup            ;; - starting money should be [?HETEROGENOUS?]
 ;;         - fish-reproduce      ;; - Fish reproduction mechanics have to be limited by i.) prior pop. amount, ii.) pollution amount [e.g. see logictical growth, pollution effect]
 ;;                               ;; - there are too many fishes for fisherman even though fish_reproduction_rate is set = 0;
 ;;                               ;; - pollution only decrease reproduction rate, but doesn't kill fish
@@ -54,22 +54,23 @@ turtles-own [
   expedition_cost       ;; cost per fishing trip (deduct upon departing)   ;; (fixed at 3)
   fish_caught           ;; fish already caught (on boat)
   money                 ;; current money available. minus indicate debt    ;; (starting at 100, same for everyone)
+  last_profit                ;; profit from (fish_sold - expedition_cost) last trip
 
   ;; --- Spawn/Fish/Return Mechanism Variables ---
   home_patch            ;; the land patch where this fisherman spawned
   target_patch          ;; where the fisherman is currently moving towards
-  current_state         ;; at-home, or fishing
+  current_state         ;; "at-home", "fishing"
 ]
 
 globals [
-  fish_price            ;; How much a fish can be sold for                  ;; (fixed at 1)
+  fish_price            ;; How much a fish can be sold for                  ;; (fixed at 0.35)
   ; fish_supply           ;; COMING SOON ?
   ; fish_demand_static    ;; COMING SOON ?
 
   ; --- Adjustable Global Sliders ---
   ; fisherman_population    ;; How many fisherman is spawned at setup
-  ; pollution-decay-rate    ;; How many pollution is lost per tick
-  ; fish_reproduction_rate  ;; How many fish is born/patch; if no pollution is present
+  ; pollution_decay_rate    ;; How many pollution is lost per tick
+  ; fish_reproduction_rate  ;; How many fish is born/patch; if no pollution is present   ;; (fixed at 3)
 
   ; [REMOVED] --- Outcome Counters ---
   ; [REMOVED] happy_end_count       ;; Count of wealthy retirees
@@ -88,12 +89,11 @@ globals [
 to setup
   clear-all
 
-
   setup-map
   recolor
   setup-fishermen
 
-  set fish_price 0.2
+  set fish_price 0.35
   reset-ticks
 end
 
@@ -134,10 +134,11 @@ to setup-fishermen
     ;; 2. Initialize Variables
     set expedition_cost 3
     set money 100
+    set fish_caught 0
 
-    ;; 3. Set at_home status to pay for expedition & Pick first destination
-    set target_patch one-of patches with [is_land = 0]
+    ;; 3. Set at_home status to pay for expedition, and select target sea patch
     set current_state "at-home"
+    set target_patch one-of patches with [is_land = 0]
   ]
 end
 
@@ -198,110 +199,63 @@ end
 ;    set pollution_amount pollution_amount - pollution_decay_rate
 ;    if pollution_amount < 0 [ set pollution_amount 0 ]
 ;   ]
-end
+; end
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; FISHERMAN BEHAVIOR
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
-
 to fisherman-behavior
   ask turtles [
+    ifelse current_state = "at_home"
+    [
+      ;; --- STATE 1: AT HOME ---
 
-    ;; --- STATE 1: AT HOME (Start of Expedition Logic) ---
-    if current_state = "at_home" [
+      ;; 1. MOVE TO HOME
+      ;; Used is-patch? to prevent "Move-to 0" error if home_patch is not set
+      if is-patch? home_patch [ move-to home_patch ]
 
-        ;; 1. SELL FISH
-        let fish_income fish_caught * fish_price
-        set fish_caught 0
+      ;; 2. SELL FISH
+      let fish_income (fish_caught * fish_price)
+      set fish_caught 0
 
-        ;; 2. CALCULATE PROFIT
-        let profit fish_income - expedition_cost
-        set money money + profit
+      ;; 3. CALCULATE PROFIT & UPDATE MONEY
+      let profit (fish_income - expedition_cost)
+      set money money + profit
+      set last_profit profit
 
-        ;; 3. START TRIP
-        set target_patch one-of patches with [is_land = 0]
-        set current_state "fishing"
-      ]
+      ;; 4. VISUALIZE DEBT
+      ifelse money < 0 [ set color red ] [ set color black ]
+
+      ;; 5. START TRIP
+      set target_patch one-of patches with [is_land = 0]
+
+      ;; 6. Change state
+      set current_state "fishing"
     ]
+    [
+      ;; --- STATE 2: FISHING ---
 
-    ;; --- STATE 2: FISHING---
-    ;; Note: This start on the next tick.
-    if current_state = "fishing" [
-
-
-      ;; Check if arrived
-      if distance target_patch < 1 [
+      ;; 1. Move to random target patch
+      ;; Used is-patch? to prevent "Move-to 0" error
+      if is-patch? target_patch [
         move-to target_patch
-        set current_state "fishing"
-        set fishing_time 5 ;; Start 5 tick timer
-      ]
-    ]
 
-    ;; --- STATE 2: FISHING ---
-    if current_state = "fishing" [
-      set fishing_time fishing_time - 1
-
-      ;; If timer is done, perform the catch
-      if fishing_time <= 0 [
-
-        ;; 1. Attempt to catch fish
-        let ability rate_of_fishing
+        ;; 2. Catch ALL fish in that patch
         let actual_catch 0
-
         ask patch-here [
-          set actual_catch min (list ability fish_population)
-          set fish_population fish_population - actual_catch
+          set actual_catch fish_population
+          set fish_population 0
         ]
 
-        ;; 2. Update inventory
-        set fish_caught fish_caught + actual_catch
-
-        ;; 3. Decide next move
-        ifelse fish_caught >= desired_fish_amount
-        [
-          ;; Satisfied -> Go Home
-          set target_patch home_patch
-          set current_state "returning"
-        ]
-        [
-          ;; Not Satisfied -> Pick new sea spot
-          ;; Note: We go directly to "traveling" to avoid paying expedition cost again
-          set target_patch one-of patches with [is_land = 0]
-          set current_state "traveling"
-        ]
+        ;; 3. Update inventory
+        set fish_caught actual_catch
       ]
+
+      ;; 4. RESTART CYCLE
+      set current_state "at_home"
     ]
-
-    ;; --- STATE 3: RETURNING HOME ---
-    if current_state = "returning" [
-      face target_patch
-      fd 1
-
-      ;; Check if arrived home
-      if distance target_patch < 1 [
-        move-to target_patch
-
-        ;; --- HOME LOGIC ---
-
-        ;; 1. SELL FISH
-        set money money + (fish_caught * fish_price)
-        set fish_caught 0
-
-        ;; 2. CHECK HAPPY END
-        ifelse money >= happy_money [
-          set happy_end_count happy_end_count + 1
-          die
-        ]
-        [
-          ;; 3. RESTART CYCLE
-          ;; Go to "at_home" state so the next tick triggers the cost check/deduction
-          set current_state "at_home"
-        ]
-      ]
-    ]
-
   ]
 end
 
@@ -442,7 +396,7 @@ SLIDER
 fisherman_population
 fisherman_population
 0
-10,000
+10000
 3700.0
 1
 1
@@ -473,18 +427,18 @@ fish_reproduction_rate
 fish_reproduction_rate
 0
 10
-0.5
+3.0
 0.1
 1
 NIL
 HORIZONTAL
 
 PLOT
-554
-264
-754
-414
-Current fisherman population
+757
+94
+957
+244
+Total fish population
 NIL
 NIL
 0.0
@@ -495,13 +449,13 @@ true
 false
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "plot count turtles"
+"default" 1.0 0 -16777216 true "" "plot sum [fish_population] of patches"
 
 MONITOR
-773
-495
-936
-540
+780
+427
+963
+472
 NIL
 Total money/debt amount
 17
@@ -509,21 +463,21 @@ Total money/debt amount
 11
 
 MONITOR
-773
-438
-954
-483
-NIL
-Average money/debt amount
-17
+557
+427
+738
+472
+Latest Average Profit per Trip
+sum [last_profit] of turtles / count turtles
+2
 1
 11
 
 PLOT
-770
-262
-970
-412
+561
+265
+761
+415
 Average Profit per Trip
 NIL
 NIL
@@ -535,13 +489,13 @@ true
 false
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "plot count turtles"
+"default" 1.0 0 -16777216 true "" "plot (sum [last_profit] of turtles) / count turtles"
 
 PLOT
-556
-424
-756
-574
+778
+264
+978
+414
 Total money/debt amount
 NIL
 NIL
@@ -553,18 +507,37 @@ true
 false
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "plot count turtles"
+"default" 1.0 0 -16777216 true "" "plot sum [money] of turtles"
 
 SWITCH
-913
-130
-1016
-163
-policy
-policy
+754
+36
+906
+69
+Intervention_Policy
+Intervention_Policy
 1
 1
 -1000
+
+PLOT
+980
+94
+1372
+244
+Population of Profitable vs. In-debt Fisherman
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"profitable" 1.0 0 -16777216 true "" "plot count turtles with [money >= 0]"
+"in-debt" 1.0 0 -2674135 true "" "plot count turtles with [money < 0]"
 
 @#$#@#$#@
 ## WHAT IS IT?
