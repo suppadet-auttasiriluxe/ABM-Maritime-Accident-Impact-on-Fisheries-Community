@@ -1,0 +1,64 @@
+Fisherman
+- Boat number <- registered boat (limitation: not representing unregistered)
+- many fisherman per boat
+
+- 2 main types (exclude IMUL since we focus on coastal fisheries, cite the monsoon bring pollution to coast) 
+	- generalize 2 main types: 
+		1. OFRP
+		2. NTRB
+- we don't consider time of year
+- we assume they go every day, since FRP boat go out 23 days/month (Wijayaratne, 2001)
+- we assume everyone is boat owner, despite the fact that there are i.) owner, ii.) worker but they earn quite similarity (2.2 socio-economic... Wijayaratne, 2001)
+
+	- Behavior
+		1. pay what??
+		2. fish search behavior
+			- IMUL have radar
+			- Small scale fisherman ??
+		3. do amount of fisherman increase ?? -- IF WE HAVE TIME
+			- Generational link; (not much change of number) (Wijayaratne, 2001)
+			- Market dynamic
+				- 5$ -- we set the prod. and fish so that profits hit 5$
+				- if pollution hits
+					- how much $ will be reduced
+		4. Fisherman goes out
+		5. Fish an amount (calibrate the profit/kg so that on average 
+
+	- Remove Happy_end / Bad_end
+		- We don't model this since people don't stop fishing even when they reach financial freedom, they will just keep doing it profitably 
+		- Even when the fisherman is in debt, they will keep fishing under loan (groundviews, 2025)
+	- We measure the accum profitability of fisherman
+		1. fisherman number with <0 money and >0 money
+		2. amount of loan
+		3. amount of money
+
+
+
+Environment
+- area that got hit
+	1. Colombo
+	2. Negombo	<- data from 
+		- 
+
+Pollution
+	- How much pollution is released for one accident	
+		- 1680 tons
+		- spread of 5 days  (fan shaped toward the land and move)
+		- natural decay of something (fish eat it and dies)
+			- the patch that hit the land, pollution subside
+	- How it affect the fish reproduction rate?
+		- ???
+	- How long it take for pollution (it still there after 10 years, )
+
+
+
+Fish
+	- How many fish will a fisherman catch / day = to get 5$ profits a day
+	- reproduction (reproduction = death + caught; under normal condition)
+		- reproduction rate
+		- death rate -> increase when pollution is there
+		- caught rate
+
+
+Economic (later)
+	- 

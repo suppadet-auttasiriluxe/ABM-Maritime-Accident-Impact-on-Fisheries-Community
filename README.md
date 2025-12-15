@@ -2,6 +2,10 @@
    - For Class of Ecological Challenges as a part of EPOG-JM Master's Degree (cohort 2024-2026)
    - Just download the Fisheries-Pollution Dynamic v_._.nlogo file
 
+# Version: v0.2 - Introducing Debt system, Removed turtles_dies, Overhaul fisherman-behavior (2 ticks/day)
+   ## Model Description:
+      - I will update the description later :D
+
 # Version: v0.1 - Proof-of-Concept Draft - Actors & Mechanics are there but dynamics doesn't work yet :(
 
    ## Model Description:

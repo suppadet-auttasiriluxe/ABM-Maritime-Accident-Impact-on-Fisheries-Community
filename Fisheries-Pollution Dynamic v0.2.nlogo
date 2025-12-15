@@ -1,25 +1,24 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;  ABM: Fishery–Pollution–Economy Interaction Prototype
-;;  Version: v0.1 - Proof-of-Concept Draft - Actors & Mechanics are there but dynamics doesn't work yet :(
+;;  Version: v0.2 - Introducing Debt system, Removed turtles_dies, Overhaul fisherman-behavior (2 ticks/day)
 ;;
 ;;   Model Description:
-;;      - Under usual condition fisherman pay money, go out to fish, and at least fish until he/she is satisfied
-;;      - then come back to sell. If they are profitable, they do it again
-;;      - When they have enough money (financial freedom), they exit happy_end
-;;      - If they run out of money, they exit bad_end.
-;;      - We will compare the happy_end / bad_end ratio
+;;      1. Under usual condition fisherman sell caught-fish, pay money [?WHAT AMOUNT?]
+;;      2. then go out randomly to fish, and fish all [or RANDOMIZED?] from patch
+;;      -
+;;
 ;;
 ;;   Hypothesis:
 ;;      - When pollutant pollute the water, reproduction rate is hit, fish pop. go down
-;;      - Fisherman have a hard time finding fish -> they go bankrupt
+;;      - Fisherman have a hard time finding fish -> they go more into debt
 ;;
 ;;   What to do in the next version?
 ;;      - IMPROVE PROCEDURE
-;;         - setup            ;; Fish spawned have to be more realistic (should spawned in school not randomly)
-;;                            ;; Also, right now there are too many fishes available for fisherman
+;;         - setup            ;; - starting money should be HETEROGENOUS ?
 ;;         - fish-reproduce      ;; - Fish reproduction mechanics have to be limited by i.) prior pop. amount, ii.) pollution amount [e.g. see logictical growth, pollution effect]
 ;;                               ;; - there are too many fishes for fisherman even though fish_reproduction_rate is set = 0;
 ;;                               ;; - pollution only decrease reproduction rate, but doesn't kill fish
+;;                               ;; -
 ;;         ***- fisherman-behavior  ;; Fisherman pay once but can keep finding fish forever until they reach the desired amount
 ;;                                  ;; Fix by either:
 ;;                                  ;; - remove the movement (everything happen in a tick, we use the model to calculate); we will not see nice animation though :(
@@ -29,11 +28,6 @@
 ;;         - max_fish_pop                ;; fish can't just keep growing
 ;;         - fish_reproduction_rate      ;; rate must be true to real life
 ;;         - ...
-;;      - INTRODUCE INVESTMENT/EQUIPMENT
-;;         - radar: always go to patch with highest fish
-;;         - engine: increase move speed / reduce expedition cost (better fuel efficiency)
-;;         - trawler: reduce fishing time
-;;         - fuel tank: bigger fuel tank = more max_travel_distance
 ;;      - INTRODUCE MARKET DYNAMICS
 ;;         - fish_supply         ;; how much fish is in the market
 ;;         - fish_demand_static  ;; how many fish is consume/tick
@@ -53,34 +47,33 @@ patches-own [
 ]
 
 turtles-own [
-  ;; --- Economic Variables ---
-  rate_of_fishing       ;; max capacity to fish per attempt                 ;; (fixed at 500)
-  expedition_cost       ;; cost per fishing trip (deduct upon departing)    ;; (fixed at 700)
-  fishing_time          ;; how long does it takes to fish                 ;; (fixed at 5 ticks)
+  ; --- Economic Variables ---
+  ; [SHOULD MODIFY LATER: V2] rate_of_fishing       ;; max capacity to fish per attempt    ;; [now fish everything from a patch; or randomized 70-100% e.g.]
+  ; [REMOVED] desired_fish_amount   ;; how many fish needed to be satisfied before going back home ;; [now fish everything from a patch]
+  ; [REMOVED] fishing_time          ;; how long does it takes to fish      ;; [now fish instantly]
+  expedition_cost       ;; cost per fishing trip (deduct upon departing)   ;; (fixed at 3)
   fish_caught           ;; fish already caught (on boat)
-  desired_fish_amount   ;; how many fish needed to be satisfied before going back home
-  money                 ;; current money available; if this runs out, fisherman exit the market
-  happy_money           ;; threshold for exit (assuming they reach financial freedom)
+  money                 ;; current money available. minus indicate debt    ;; (starting at 100, same for everyone)
 
   ;; --- Spawn/Fish/Return Mechanism Variables ---
   home_patch            ;; the land patch where this fisherman spawned
   target_patch          ;; where the fisherman is currently moving towards
-  current_state         ;; "at-home", "traveling", "fishing", "returning"
+  current_state         ;; at-home, or fishing
 ]
 
 globals [
   fish_price            ;; How much a fish can be sold for                  ;; (fixed at 1)
-  ;fish_supply           ;; COMING SOON IN V.2
-  ;fish_demand_static    ;; COMING SOON IN V.2
+  ; fish_supply           ;; COMING SOON ?
+  ; fish_demand_static    ;; COMING SOON ?
 
-  ;; --- Adjustable Global Sliders ---
-  ;fisherman_population    ;; How many fisherman is spawned at setup
-  ;pollution-decay-rate    ;; How many pollution is lost per tick
-  ;fish_reproduction_rate  ;; How many fish is born/patch; if no pollution is present
+  ; --- Adjustable Global Sliders ---
+  ; fisherman_population    ;; How many fisherman is spawned at setup
+  ; pollution-decay-rate    ;; How many pollution is lost per tick
+  ; fish_reproduction_rate  ;; How many fish is born/patch; if no pollution is present
 
-  ;; --- Outcome Counters ---
-  happy_end_count       ;; Count of wealthy retirees
-  bad_end_count         ;; Count of bankruptcies
+  ; [REMOVED] --- Outcome Counters ---
+  ; [REMOVED] happy_end_count       ;; Count of wealthy retirees
+  ; [REMOVED] bad_end_count         ;; Count of bankruptcies
 ]
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -94,15 +87,13 @@ globals [
 
 to setup
   clear-all
-  set happy_end_count 0
-  set bad_end_count 0
 
 
   setup-map
   recolor
   setup-fishermen
 
-  set fish_price 1
+  set fish_price 0.2
   reset-ticks
 end
 
@@ -120,8 +111,8 @@ to setup-map
     [
       ;; all other patches = sea
       set is_land 0
-      set fish_population random 100
-      set max_fish_pop 200
+      set fish_population random 50
+      set max_fish_pop 100
       set pollution_amount 0
       set max_pollution 100
     ]
@@ -130,8 +121,8 @@ end
 
 to setup-fishermen
   create-turtles fisherman_population [
-    set color red
-    set size 3
+    set color black
+    set size 1
 
     ;; 1. Spawn on random land patch & Set Home
     let spawn_patch one-of patches with [is_land = 1]
@@ -141,15 +132,12 @@ to setup-fishermen
     ]
 
     ;; 2. Initialize Variables
-    set rate_of_fishing 500
-    set desired_fish_amount 1000
-    set expedition_cost 700
-    set money 5000
-    set happy_money 20000
+    set expedition_cost 3
+    set money 100
 
     ;; 3. Set at_home status to pay for expedition & Pick first destination
     set target_patch one-of patches with [is_land = 0]
-    set current_state "at_home"
+    set current_state "at-home"
   ]
 end
 
@@ -205,40 +193,43 @@ to pollution-decay
   ]
 end
 
+; to pollution-decay-land
+;  ask patches with [pollution_amount > 0 and is_land = 0 and is_adjacent_to_land = 1 (or patch xycor = x,17) ] [      ;; FIX PSEUDOCODE ON THIS LINE TO MAKE POLLUTION DECAY FASTER FOR PATCH ADJACENT TO LAND
+;    set pollution_amount pollution_amount - pollution_decay_rate
+;    if pollution_amount < 0 [ set pollution_amount 0 ]
+;   ]
+end
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; FISHERMAN BEHAVIOR
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-; fisherman goes to 30-50 patches to
 
 to fisherman-behavior
   ask turtles [
 
-    ;; --- STATE 0: AT HOME (Start of Expedition Logic) ---
+    ;; --- STATE 1: AT HOME (Start of Expedition Logic) ---
     if current_state = "at_home" [
 
-      ;; 1. CHECK SOLVENCY (Can I afford the trip?)
-      ifelse (money - expedition_cost) < 0 [
-        ;; Bad End: Bankrupt
-        set bad_end_count bad_end_count + 1
-        die
-      ]
-      [
-        ;; 2. PAY COST
-        set money money - expedition_cost
+        ;; 1. SELL FISH
+        let fish_income fish_caught * fish_price
+        set fish_caught 0
+
+        ;; 2. CALCULATE PROFIT
+        let profit fish_income - expedition_cost
+        set money money + profit
 
         ;; 3. START TRIP
         set target_patch one-of patches with [is_land = 0]
-        set current_state "traveling"
+        set current_state "fishing"
       ]
     ]
 
-    ;; --- STATE 1: TRAVELING ---
+    ;; --- STATE 2: FISHING---
     ;; Note: This start on the next tick.
-    if current_state = "traveling" [
-      face target_patch
-      fd 1
+    if current_state = "fishing" [
+
 
       ;; Check if arrived
       if distance target_patch < 1 [
@@ -451,8 +442,8 @@ SLIDER
 fisherman_population
 fisherman_population
 0
-100
-46.0
+10,000
+3700.0
 1
 1
 NIL
@@ -507,37 +498,73 @@ PENS
 "default" 1.0 0 -16777216 true "" "plot count turtles"
 
 MONITOR
-665
-429
-768
-474
+773
+495
+936
+540
 NIL
-bad_end_count
+Total money/debt amount
 17
 1
 11
 
 MONITOR
-551
-428
-658
-473
+773
+438
+954
+483
 NIL
-happy_end_count
+Average money/debt amount
 17
 1
 11
 
-MONITOR
-551
-497
-656
-542
-% of happy end
-happy_end_count / (happy_end_count + bad_end_count)
-17
+PLOT
+770
+262
+970
+412
+Average Profit per Trip
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot count turtles"
+
+PLOT
+556
+424
+756
+574
+Total money/debt amount
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot count turtles"
+
+SWITCH
+913
+130
+1016
+163
+policy
+policy
 1
-11
+1
+-1000
 
 @#$#@#$#@
 ## WHAT IS IT?
