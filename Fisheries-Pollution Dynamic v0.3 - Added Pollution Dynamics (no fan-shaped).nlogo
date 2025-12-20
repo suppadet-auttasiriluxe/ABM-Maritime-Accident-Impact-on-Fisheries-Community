@@ -1,6 +1,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;  ABM: Fishery–Pollution–Economy Interaction Prototype
-;;  Version: v0.2 - Introducing Debt system, Removed turtles_dies, Overhaul fisherman-behavior (2 ticks/day)
+;;  Version: v0.3 - Added pollution dynamics
 ;;
 ;;   Model Description:
 ;;      1. Under usual condition fisherman sell caught-fish, pay money [?WHAT AMOUNT?]
@@ -13,17 +13,22 @@
 ;;
 ;;   What to do in the next version?
 ;;      - IMPROVE PROCEDURE
-;;         - setup            ;; - starting money should be [?HETEROGENOUS?]
-;;         - fish-reproduce      ;; - Fish reproduction mechanics have to be limited by i.) prior pop. amount, ii.) pollution amount [e.g. see logictical growth, pollution effect]
-;;         - pollute          ;; - how much should be the starting pollution?
-;;         - pollution-spread ;; - should only run once every 2 ticks to simulate 1-day   ;; or not we could argue that they spread 2 per day
-;;                               - for some reason the world edge is not really heavily pollute, I think we might have to account for when neighbor_count < 4
+;;         - setup                   ;; - starting money should be [?HETEROGENOUS?]
+;;         - fish-reproduce          ;; - Fish reproduction mechanics have to be limited by i.) prior pop. amount, ii.) pollution amount [e.g. see logictical growth, pollution effect]
+;;         - pollute                 ;; - how much should be the starting pollution?
+;;         - pollution-spread        ;; - should only run once every 2 ticks to simulate 1-day   ;; or not we could argue that they spread 2 per day
+;;                                      - for some reason the world edge is not really heavily pollute, I think we might have to account for when neighbor_count < 4
+;;         - fisherman-behavior      ;; -
 ;;
 ;;      - IMPROVE VARIABLES   (to be true to real life)
+;;         **- consumption                 ;; decrease money by this much everyday (default at 4)
 ;;         - max_fish_pop                ;; fish can't just keep growing
 ;;         - fish_reproduction_rate      ;; rate must be true to real life
-;;         - ...
 ;;
+;;      - INTRODUCE GOV'T BORDER
+;;         **- 1. [make more sense] introduce border right away -- draw a line (can only fish in that line)
+;;         **- 2. fisherman can choose only from a % of patches
+
 ;;      - INTRODUCE 3 ECON. POLICIES
 ;;         - ...
 ;;         - ...
@@ -480,7 +485,7 @@ PENS
 MONITOR
 784
 453
-986
+1010
 498
 NIL
 Total money/debt amount
@@ -520,9 +525,9 @@ PENS
 PLOT
 782
 290
-982
+1008
 440
-Total money/debt amount
+Total money (or debt) amount
 NIL
 NIL
 0.0
@@ -611,6 +616,17 @@ pollution_per_pollute
 1
 NIL
 HORIZONTAL
+
+MONITOR
+568
+505
+937
+550
+Latest Average Saving (after deducting individual consumption)
+s
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
