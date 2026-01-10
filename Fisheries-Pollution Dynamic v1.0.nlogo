@@ -676,10 +676,10 @@ HORIZONTAL
 MONITOR
 555
 370
-745
+750
 415
-Total Pollution (unit: nurdles)
-sum [pollution_amount] of patches
+Pollution in Water (unit: nurdles)
+round sum [pollution_amount] of patches with [is_land = 0]
 0
 1
 11
