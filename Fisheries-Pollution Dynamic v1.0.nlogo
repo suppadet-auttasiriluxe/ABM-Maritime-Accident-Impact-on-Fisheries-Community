@@ -359,12 +359,14 @@ to impose-restrictions
       ]
     ]
   ]
+  print (word "Restriction introduced on tick " ticks)
 end
 
 ;; Button: "Clear Restriction"
 to clear-restrictions
   clear-restrictions-internal
   recolor ;; Force immediate redraw to remove violet lines
+  print (word "Restriction lifted on tick " ticks)
 end
 
 ;; Helper to avoid duplication
