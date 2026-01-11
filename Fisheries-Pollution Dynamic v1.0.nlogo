@@ -120,7 +120,7 @@ to setup-fishermen
     ]
 
     ;; 2. Initialize Variables
-    set money 50        ;; arbitrarily set starting amount based on the interview by how many days a fisherman could go by without having to fish
+    set money 260
     set fish_caught 0
 
     ;; 3. Set at_home status to pay for expedition, and select target sea patch
@@ -284,6 +284,7 @@ end
 
 to pollute
   ask n-of 1 patches with [is_land = 0][
+    print (word "Pollution started at x: " pxcor " y: " pycor)
     set pollution_amount pollution_amount + pollution_per_pollute
     recolor
   ]
@@ -465,7 +466,7 @@ fisherman_population
 fisherman_population
 0
 10000
-3700.0
+2775.0
 1
 1
 NIL
@@ -480,7 +481,7 @@ fish_reproduction_rate
 fish_reproduction_rate
 0
 10
-3.0
+2.1
 0.1
 1
 NIL
@@ -505,10 +506,10 @@ PENS
 "default" 1.0 0 -16777216 true "" "plot sum [fish_population] of patches"
 
 MONITOR
-1162
-491
-1364
-536
+1163
+503
+1365
+548
 Total money/debt amount
 sum [money] of turtles
 2
@@ -516,10 +517,10 @@ sum [money] of turtles
 11
 
 MONITOR
-949
-489
-1145
-534
+950
+501
+1146
+546
 Latest Average Profit per Trip
 sum [last_profit] of turtles / count turtles
 2
@@ -527,10 +528,10 @@ sum [last_profit] of turtles / count turtles
 11
 
 PLOT
-947
-329
-1147
-479
+948
+358
+1148
+491
 Average Profit per Trip
 NIL
 NIL
@@ -545,10 +546,10 @@ PENS
 "default" 1.0 0 -16777216 true "" "plot (sum [last_profit] of turtles) / count turtles"
 
 PLOT
-1160
-328
-1360
-478
+1161
+357
+1361
+490
 Total money/debt amount
 NIL
 NIL
@@ -564,10 +565,10 @@ PENS
 
 PLOT
 950
-164
+147
 1357
-314
-Population of Profitable vs. In-debt Fisherman
+288
+Population of Solvent vs. In-debt Fisher
 NIL
 NIL
 0.0
@@ -589,8 +590,8 @@ SLIDER
 fish_price
 fish_price
 0
-1
-0.63
+2
+0.97
 0.01
 1
 NIL
@@ -602,7 +603,7 @@ BUTTON
 933
 136
 Default Value
-set fisherman_population 3700\nset fish_reproduction_rate 3.0\nset fish_price 0.63\nset expedition_cost 11.26\nset pollution_per_pollute 1300000000\nset pollution_spread 66\nset ns_drift 5\nset ew_drift 7
+set fisherman_population 2775\nset fish_reproduction_rate 2.1\nset fish_price 0.97\nset expedition_cost 18.2\nset pollution_per_pollute 1300000000\nset pollution_spread 66\nset ns_drift 5\nset ew_drift 7
 NIL
 1
 T
@@ -738,7 +739,7 @@ expedition_cost
 expedition_cost
 0
 50
-11.26
+18.2
 0.1
 1
 NIL
@@ -746,9 +747,9 @@ HORIZONTAL
 
 BUTTON
 1013
-119
+102
 1175
-152
+135
  Impose Fishing Zone Restriction
 impose-restrictions
 NIL
@@ -763,9 +764,9 @@ NIL
 
 BUTTON
 1183
-119
+102
 1284
-152
+135
 Remove Restriction
 clear-restrictions
 NIL
@@ -800,9 +801,9 @@ TEXTBOX
 
 TEXTBOX
 1019
-31
+14
 1298
-67
+50
 ======================================\n===  GOVERNMENT MONITOR AND ACTION CENTER   ===\n======================================
 10
 0.0
@@ -810,9 +811,9 @@ TEXTBOX
 
 BUTTON
 990
-77
+60
 1118
-110
+93
 Pay Compensation
 ask turtles [set money money + compensation]
 NIL
@@ -827,9 +828,9 @@ NIL
 
 SLIDER
 1133
-76
+59
 1305
-109
+92
 compensation
 compensation
 18
@@ -839,6 +840,28 @@ compensation
 1
 USD
 HORIZONTAL
+
+MONITOR
+950
+294
+1158
+339
+Solvent population (Savings >= 0)
+count turtles with [money >= 0]
+0
+1
+11
+
+MONITOR
+1168
+294
+1285
+339
+In-debt population
+count turtles with [money < 0]
+0
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -1191,6 +1214,177 @@ NetLogo 6.4.0
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
+<experiments>
+  <experiment name="1 Control" repetitions="5" runMetricsEveryStep="true">
+    <setup>setup
+pollute</setup>
+    <go>go</go>
+    <timeLimit steps="730"/>
+    <metric>count turtles with [money &gt;= 0]</metric>
+    <metric>count turtles with [money &lt; 0]</metric>
+    <metric>mean [money] of turtles</metric>
+    <enumeratedValueSet variable="pollution_spread">
+      <value value="66"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ew_drift">
+      <value value="7"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fish_price">
+      <value value="0.97"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="pollution_per_pollute">
+      <value value="1300000000"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fisherman_population">
+      <value value="2775"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="compensation">
+      <value value="18"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fish_reproduction_rate">
+      <value value="2.1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ns_drift">
+      <value value="5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="expedition_cost">
+      <value value="18.2"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="2a Gov't Restriction (Early - Tick 10)" repetitions="5" runMetricsEveryStep="true">
+    <setup>setup
+pollute</setup>
+    <go>;; Trigger restriction at tick 10
+if ticks = 10 [ impose-restrictions ]
+
+;; Check to lift restriction (only if restrictions exist)
+if (count patches with [is_restricted = 1] &gt; 0) [
+  if count patches with [pollution_amount &gt; 1] = 0 [ clear-restrictions ]
+]
+
+go</go>
+    <timeLimit steps="730"/>
+    <metric>count turtles with [money &gt;= 0]</metric>
+    <metric>count turtles with [money &lt; 0]</metric>
+    <metric>mean [money] of turtles</metric>
+    <enumeratedValueSet variable="pollution_spread">
+      <value value="66"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ew_drift">
+      <value value="7"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fish_price">
+      <value value="0.97"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="pollution_per_pollute">
+      <value value="1300000000"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fisherman_population">
+      <value value="2775"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="compensation">
+      <value value="18"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fish_reproduction_rate">
+      <value value="2.1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ns_drift">
+      <value value="5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="expedition_cost">
+      <value value="18.2"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="2b Gov't Restriction (Late - Tick 20)" repetitions="5" runMetricsEveryStep="true">
+    <setup>setup
+pollute</setup>
+    <go>;; Trigger restriction at tick 10
+if ticks = 20 [ impose-restrictions ]
+
+;; Check to lift restriction (only if restrictions exist)
+if (count patches with [is_restricted = 1] &gt; 0) [
+  if count patches with [pollution_amount &gt; 1] = 0 [ clear-restrictions ]
+]
+
+go</go>
+    <timeLimit steps="730"/>
+    <metric>count turtles with [money &gt;= 0]</metric>
+    <metric>count turtles with [money &lt; 0]</metric>
+    <metric>mean [money] of turtles</metric>
+    <enumeratedValueSet variable="pollution_spread">
+      <value value="66"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ew_drift">
+      <value value="7"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fish_price">
+      <value value="0.97"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="pollution_per_pollute">
+      <value value="1300000000"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fisherman_population">
+      <value value="2775"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="compensation">
+      <value value="18"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fish_reproduction_rate">
+      <value value="2.1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ns_drift">
+      <value value="5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="expedition_cost">
+      <value value="18.2"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="3 Gov't Restriction + Compensation (Early - Tick 10)" repetitions="5" runMetricsEveryStep="true">
+    <setup>setup
+pollute
+ask turtles [ set money money + 18 ]</setup>
+    <go>;; Trigger restriction at tick 10
+if ticks = 10 [ impose-restrictions ]
+
+;; Check to lift restriction (only if restrictions exist)
+if (count patches with [is_restricted = 1] &gt; 0) [
+  if count patches with [pollution_amount &gt; 1] = 0 [ clear-restrictions ]
+]
+
+go</go>
+    <timeLimit steps="730"/>
+    <metric>count turtles with [money &gt;= 0]</metric>
+    <metric>count turtles with [money &lt; 0]</metric>
+    <metric>mean [money] of turtles</metric>
+    <enumeratedValueSet variable="pollution_spread">
+      <value value="66"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ew_drift">
+      <value value="7"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fish_price">
+      <value value="0.97"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="pollution_per_pollute">
+      <value value="1300000000"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fisherman_population">
+      <value value="2775"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="compensation">
+      <value value="18"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="fish_reproduction_rate">
+      <value value="2.1"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="ns_drift">
+      <value value="5"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="expedition_cost">
+      <value value="18.2"/>
+    </enumeratedValueSet>
+  </experiment>
+</experiments>
 @#$#@#$#@
 @#$#@#$#@
 default
