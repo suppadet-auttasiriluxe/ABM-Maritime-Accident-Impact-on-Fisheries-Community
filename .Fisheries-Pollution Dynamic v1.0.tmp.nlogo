@@ -467,7 +467,7 @@ fisherman_population
 fisherman_population
 0
 10000
-2775.0
+1656.0
 1
 1
 NIL
